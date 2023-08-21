@@ -1,3 +1,19 @@
-<div id="map" style="height: 500px;"></div>
-<p-slider [(ngModel)]="sliderValue" (onChange)="redrawMap()" [min]="609" [max]="708" [step]="1"></p-slider>
+<div class="container">
+    <div id="map">
+        <p class="level-indicator">{{sliderValue}}</p>
+        <div #legendContainer class="legend" cdkDrag cdkDragBoundary=".container">
+            <p-card>
+                <div class="legend-body" *ngFor="let item of legendItems">
+                    <div class="legend-item">
+                        <span class="color-box" [style.background-color]="item.color" (click)="legendClicked(item.value)">{{item.count}}</span>
+                        <span>{{item.label}}</span>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+        <div #sliderContainer class="slider-container">
+            <p-slider class="slider" [(ngModel)]="sliderValue" (onChange)="redrawMap()" [min]="592" [max]="705" [step]="1" ></p-slider>
+        </div>
+    </div>
+</div>
 

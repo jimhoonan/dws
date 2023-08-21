@@ -5,6 +5,9 @@ import { SliderModule } from 'primeng/slider';
 
 import { AppComponent } from './app.component';
 import { MapComponent } from './map/map.component';
+import { FormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card'
+import { DragDropModule } from '@angular/cdk/drag-drop'
 
 @NgModule({
   declarations: [
@@ -14,7 +17,10 @@ import { MapComponent } from './map/map.component';
   imports: [
     BrowserModule,
     HttpClientModule,
-    SliderModule
+    SliderModule,
+    FormsModule,
+    CardModule,
+    DragDropModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

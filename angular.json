@@ -72,7 +72,8 @@
               "browserTarget": "dws:build:production"
             },
             "development": {
-              "browserTarget": "dws:build:development"
+              "browserTarget": "dws:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
