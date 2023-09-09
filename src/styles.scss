@@ -1,1 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+    margin: 0 !important;
+}
+
+.no-close-button-popup {
+
+    .leaflet-popup-close-button {
+        display: none;
+    }
+    .leaflet-popup-content {
+        margin: 5px;
+        display: flex;
+    }
+    img {
+        border-radius: 10px;
+    }
+}

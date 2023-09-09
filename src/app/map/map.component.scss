@@ -26,6 +26,11 @@
     opacity: .5;
 }
 
+.photo {
+    position: absolute;
+    z-index: 1000;
+}
+
 .slider-container {
     display: flex;
     flex-direction: column;
@@ -42,7 +47,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    height: 95vh;
+    height: 100vh;
 }
 
 .floating-button {
@@ -66,3 +71,22 @@
     justify-content: center;
     cursor: default;
 }
+
+/* Styles for the fullscreen preview */
+#fullscreen-preview-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent backdrop */
+    z-index: 2000; /* High z-index to be on top of other content */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #fullscreen-preview-backdrop img {
+    max-width: 95%; /* Margin to ensure it doesn't touch edges */
+    max-height: 95%;
+  }

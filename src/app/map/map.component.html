@@ -1,4 +1,7 @@
 <div class="container">
+    <div #fullscreenPreview id="fullscreen-preview-backdrop">
+        <img src="" alt="Fullscreen Preview" />
+      </div>
     <div id="map">
         <p class="level-indicator">{{sliderValue}}</p>
         <div #legendContainer class="legend" cdkDrag cdkDragBoundary=".container">
@@ -15,5 +18,6 @@
             <p-slider class="slider" [(ngModel)]="sliderValue" (onChange)="redrawMap()" [min]="592" [max]="705" [step]="1" ></p-slider>
         </div>
     </div>
+
 </div>
 

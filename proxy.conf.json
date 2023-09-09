@@ -2,5 +2,9 @@
     "/api/lakelevel": {
         "target": "http://localhost:3000",
         "secure": false
+    },
+    "/api/upload-image": {
+        "target": "http://localhost:3000",
+        "secure": false
     }
 }

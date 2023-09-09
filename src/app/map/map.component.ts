@@ -1,7 +1,10 @@
-import { style } from '@angular/animations';
-import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ComponentFactoryResolver, ElementRef, OnInit, ViewChild, Renderer2, RendererFactory2, Injector, ApplicationRef, ViewContainerRef, ComponentFactory} from '@angular/core';
 import * as L from 'leaflet';
+import { ClimbScoreService } from '../climb-score.service';
+import { LakeLevelService } from '../lake-level.service';
+import { PhotosService } from '../photos.service';
+import { PhotoData } from '../models/photo-data.model';
+
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -10,34 +13,30 @@ import * as L from 'leaflet';
 export class MapComponent implements OnInit, AfterViewInit {
   private map!: L.Map;
   sliderValue: number = 630;
-  geojsonLayer: any;
-  data: any;
+  climbScoreLayer: any;
   legendItems: any[] = [];
+  photoMarkers: any[] = [];
+
+  preview = false;
 
   currentFlight!: Map<number,number>;
-  legendCache!: Map<number, any[]>;
-  featureCache!: Map<number, any[]>;
 
-  constructor(private http: HttpClient) { }
+  constructor(private lakeLevelService: LakeLevelService, 
+    private climbScoreService: ClimbScoreService, 
+    private photoService: PhotosService,) {  }
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
   @ViewChild('legendContainer') legendContainer!: ElementRef;
+  @ViewChild('fullscreenPreview') fullscreenPreview!: ElementRef;
 
   ngOnInit() {
-    this.legendCache = new Map<number, any[]>();
-    this.featureCache = new Map<number, any[]>();
-    this.legendItems = this.getLegend();
+    this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
     this.getCurrentLakeDepth();
     this.resetCurrentFlight();
   }
 
   getCurrentLakeDepth() {
-    this.http.get('/api/lakelevel')
-    .subscribe((x: any) => {
-      console.log(x)
-      if (x.level) {
-        this.sliderValue = Math.min(Math.max(Math.floor(x.level), 592),705)
-      }
-    })
+    this.lakeLevelService.getCurrentLakeLevel()
+    .subscribe(x => this.sliderValue = x);
   }
 
   resetCurrentFlight() {
@@ -46,8 +45,17 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.initMap();
-    this.loadGeoJSON();
-    this.legendItems = this.getLegend();
+    this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
+
+    document.addEventListener('keydown', (event: any) => {
+      if (event.key === 'Escape' || event.keyCode === 27) {
+        this.fullscreenPreview.nativeElement.style.display = 'none';
+      }
+    })
+
+    this.fullscreenPreview.nativeElement.onclick = (event: any) => {
+      this.fullscreenPreview.nativeElement.style.display = 'none';
+    } 
 
     this.sliderContainer.nativeElement.addEventListener('mouseover', () => {
       this.map.dragging.disable();
@@ -64,100 +72,102 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.legendContainer.nativeElement.addEventListener('mouseout', () => {
       this.map.dragging.enable();
     });
+
   }
 
   private initMap(): void {
     this.map = L.map('map', {
-      center: [30.3978, -98.0056],  // Adjust this to your desired initial center
+      center: [30.3978, -98.0056],
       zoom: 12,
       zoomControl: false,
     });
 
-    this.map.on('moveend', () => {
-      const center = this.map.getCenter();
-      const zoom = this.map.getZoom();
-    });
-
-    const tiles = L.tileLayer('http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    const tiles = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '...'
     });
 
     tiles.addTo(this.map);
-  }
-
-  private loadGeoJSON(): void {
-    this.http.get('../../assets/geojson/merged.geojson').subscribe(data => {
-      this.data = data;
-      this.redrawMap();
-    });
-  }
-
-  getSliderBucket() : number {
-    return Math.floor(this.sliderValue / 3);
+    this.redrawMap();
   }
 
   redrawMap() {
-    if (this.geojsonLayer) {
-      this.map.removeLayer(this.geojsonLayer);
+    if (this.climbScoreLayer) {
+      this.map.removeLayer(this.climbScoreLayer);
     }
 
     this.resetCurrentFlight();
-    let features;
 
-    if (this.featureCache.has(this.getSliderBucket())) {
-      features = this.featureCache.get(this.getSliderBucket());
+    this.climbScoreService.getLevelData(this.sliderValue).subscribe(layer => {
+      this.map.addLayer(layer);
+      this.climbScoreLayer = layer;
+    })
+
+    this.photoService.getPhotoData().subscribe(photoData => this.addPhotoLayer(photoData));
+
+    this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
+  }
+
+  addPhotoLayer(photoData:PhotoData[]): void {
+    for(let i = 0; i < this.photoMarkers.length; i++) {
+      this.map.removeLayer(this.photoMarkers[i]);
     }
-    else {
-      features = this.data.features
-      .filter((feature : any) => this.sliderValue <= feature.properties.level && feature.properties.level < this.sliderValue + 3)
-      .sort((a: any, b: any) => b.properties.Area - a.properties.Area);
 
-      this.featureCache.set(this.getSliderBucket(), features);
-    }
+    this.photoMarkers = [];
 
-    this.geojsonLayer = L.geoJSON({
-      ...this.data,
-      features: features
-    }, {
-      style: this.getStyle
-    });
-    this.map.addLayer(this.geojsonLayer);
+    for(let i = 0; i < photoData.length; i++) {
+      var data = photoData[i];
+      if (data.latitude && data.longitude) {
+        var circle = L.circle([data.latitude, data.longitude]).addTo(this.map);
+        this.photoMarkers.push(circle);
+        let thumbnailPath = this.photoService.getThumbnailUrl(data.id);
+        let fullPath = this.photoService.getPhotoUrl(data.id);
 
-    this.legendItems = this.getLegend();
-}
+        let imageTemplate = `<img src="${thumbnailPath}" height="150" width="150">`;
 
-  getLegend() : any[] {
+        circle.on('click', (e: L.LeafletEvent) => {
+          e.target.unbindPopup();
+          let popup;
+          if (e.target.getPopup()) {
+            popup = e.target.getPopup();
+          } else {
+            popup = e.target.bindPopup(imageTemplate, {
+              className: 'no-close-button-popup',
+            });
+            popup.openPopup();
+          }
 
-    if (!this.featureCache.has(this.getSliderBucket()))
-    {
-      return [
-        {color:'#FFA112', label:'9 ft', value: 9, count: 0},
-        {color:'#F7ED21', label:'12 ft', value: 12, count: 0},
-        {color:'#A4CF22', label:'15 ft', value: 15, count: 0},
-        {color:'#35911D', label:'18 ft', value: 18, count: 0},
+          const imgElement = e.target.getPopup()._contentNode.querySelector('img');
+          console.log(imgElement)
 
-      ]
-    }
-    if (this.legendCache.has(this.getSliderBucket())) {
-      return this.legendCache.get(this.getSliderBucket())!;
-    }
-    else {
-      var features = this.featureCache.get(this.getSliderBucket())!;
-      var legend = [
-        {color:'#FFA112', label:'9 ft', value: 9, count: features.filter((x:any) => x.properties.gridcode === 9).length},
-        {color:'#F7ED21', label:'12 ft', value: 12, count: features.filter((x:any) => x.properties.gridcode === 12).length},
-        {color:'#A4CF22', label:'15 ft', value: 15, count: features.filter((x:any) => x.properties.gridcode === 15).length},
-        {color:'#35911D', label:'18 ft', value: 18, count: features.filter((x:any) => x.properties.gridcode === 18).length},
-      ];
+          imgElement.onclick = () => {
+            const imgRef = this.fullscreenPreview.nativeElement.querySelector('img');
+            imgRef.src = fullPath;
+            this.fullscreenPreview.nativeElement.style.display = 'flex';
+          }
+        })
 
-      this.legendCache.set(this.getSliderBucket(), legend);
-      return legend;
+        circle.on('mouseover', (e : L.LeafletEvent) => {
+          let popup = e.target.bindPopup(imageTemplate, {
+            className: 'no-close-button-popup',
+          });
+          popup.openPopup();
+
+          const imgElement = e.target.getPopup()._contentNode.querySelector('img');
+
+          imgElement.onclick = () => {
+            const imgRef = this.fullscreenPreview.nativeElement.querySelector('img');
+            imgRef.src = fullPath;
+            this.fullscreenPreview.nativeElement.style.display = 'flex';
+          }
+
+        });
+      }
     }
   }
 
   legendClicked(value: number) {
-    var filteredFeatures = this.geojsonLayer.getLayers().filter((x:any) => x.feature.properties.gridcode === value);
+    var filteredFeatures = this.climbScoreLayer.getLayers().filter((x:any) => x.feature.properties.gridcode === value);
     var index = this.currentFlight.get(value) ?? 0;
     var feature = filteredFeatures[index]
 
@@ -166,24 +176,5 @@ export class MapComponent implements OnInit, AfterViewInit {
     var bounds = feature.getBounds();
 
     this.map.flyToBounds(bounds, {duration: 2});
-  }
-
-  getStyle(feature: any) {
-    let rank = feature.properties.gridcode;
-    let color = '#000000';
-    if (rank === 6) color = '#FF0000';
-    if (rank === 9) color = '#FFA112';
-    if (rank === 12) color = '#F7ED21';
-    if (rank === 15) color = '#A4CF22';
-    if (rank === 18) color = '#35911D';
-
-
-    return {
-      fillColor: color,
-      weight: 0,
-      opacity: 1,
-      color: 'white',
-      fillOpacity: 0.7
-    };
   }
 }
