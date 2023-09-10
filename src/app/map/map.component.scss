@@ -50,13 +50,6 @@
     height: 100vh;
 }
 
-.floating-button {
-    position: absolute;  /* This ensures the button is positioned relative to the map container */
-    top: 10px;           /* Distance from the top of the map */
-    right: 10px;         /* Distance from the right side of the map */
-    z-index: 1000;       /* Ensure it floats above the map layers */
-}
-
 .legend-item {
     display: flex;
     align-items: center;
@@ -72,7 +65,6 @@
     cursor: default;
 }
 
-/* Styles for the fullscreen preview */
 #fullscreen-preview-backdrop {
     display: none;
     position: fixed;
@@ -80,13 +72,19 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent backdrop */
-    z-index: 2000; /* High z-index to be on top of other content */
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
     justify-content: center;
     align-items: center;
   }
   
-  #fullscreen-preview-backdrop img {
-    max-width: 95%; /* Margin to ensure it doesn't touch edges */
-    max-height: 95%;
-  }
+.custom-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+::ng-deep .p-galleria-indicator.p-highlight span{
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff;
+}

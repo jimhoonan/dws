@@ -12,6 +12,9 @@ import { CalendarModule } from 'primeng/calendar'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ImageModule } from 'primeng/image';
+import { GalleriaModule } from 'primeng/galleria';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+
 
 
 @NgModule({
@@ -29,7 +32,9 @@ import { ImageModule } from 'primeng/image';
     CalendarModule,
     BrowserAnimationsModule,
     InputNumberModule,
-    ImageModule
+    ImageModule,
+    GalleriaModule,
+    ProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

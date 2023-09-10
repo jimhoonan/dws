@@ -1,7 +1,29 @@
 <div class="container">
-    <div #fullscreenPreview id="fullscreen-preview-backdrop">
-        <img src="" alt="Fullscreen Preview" />
-      </div>
+    <div #fullscreenPreview id="fullscreen-preview-backdrop" class="card md:flex md:justify-content-center">
+        <div #galleryElement>
+            <p-galleria *ngIf="showGallery" [value]="images" 
+            [containerStyle]="{ 'max-width': '850px' }" 
+            [showThumbnails]="false" 
+            [showItemNavigators]="true" 
+            [circular]="true" 
+            [numVisible]="3"
+            indicatorsPosition="bottom"
+            [showIndicatorsOnItem]="true"
+            [showIndicators]="true">
+                <ng-template pTemplate="item" let-item>
+                    <img [src]="item.itemImageSrc" style="width: 100%;" (load)="onImageLoad(item)"/>
+                    <div *ngIf="!item.isLoaded" class="custom-spinner">
+                        <p-progressSpinner></p-progressSpinner>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="indicator" let-index>
+                    <span style="color: #e9ecef; cursor: pointer;">
+                        {{ images![index].level }}
+                    </span>
+                </ng-template>
+            </p-galleria>
+        </div>
+    </div>
     <div id="map">
         <p class="level-indicator">{{sliderValue}}</p>
         <div #legendContainer class="legend" cdkDrag cdkDragBoundary=".container">
