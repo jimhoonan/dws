@@ -1,0 +1,35 @@
+<div #fullscreenPreview id="fullscreen-preview-backdrop" class="card md:flex md:justify-content-center">
+    <div #galleryElement>
+        <p-galleria *ngIf="showGallery" [value]="images" 
+        [containerStyle]="{ 'max-width': '850px' }" 
+        [showThumbnails]="false" 
+        [showItemNavigators]="true" 
+        [circular]="true" 
+        [numVisible]="3"
+        indicatorsPosition="bottom"
+        [showIndicatorsOnItem]="true"
+        [showIndicators]="true">
+            <ng-template pTemplate="item" let-item>
+                <div class="img-container">
+                    <img #zoomableImg class="zoomable" [src]="item.itemImageSrc" 
+                    (load)="onImageLoad(item, zoomableImg)" 
+                    (wheel)="onWheel($event, zoomableImg)"
+                    (mousedown)="onMouseDown($event, zoomableImg)"
+                    (mousemove)="onMouseMove($event, zoomableImg)"
+                    (mouseup)="onMouseUp($event, zoomableImg)"
+                    (mouseleave)="onMouseUp($event, zoomableImg)"
+                    (dragstart)="preventDefault($event)"
+                    />
+                    <div *ngIf="!item.isLoaded" class="custom-spinner">
+                        <p-progressSpinner></p-progressSpinner>
+                    </div>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="indicator" let-index>
+                <span style="color: #e9ecef; cursor: pointer;">
+                    {{ images![index].level }}
+                </span>
+            </ng-template>
+        </p-galleria>
+    </div>
+</div>

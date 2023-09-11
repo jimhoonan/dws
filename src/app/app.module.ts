@@ -14,6 +14,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { ImageModule } from 'primeng/image';
 import { GalleriaModule } from 'primeng/galleria';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ImageViewerComponent } from './image-viewer/image-viewer.component';
 
 
 
@@ -21,6 +22,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
   declarations: [
     AppComponent,
     MapComponent,
+    ImageViewerComponent,
   ],
   imports: [
     BrowserModule,

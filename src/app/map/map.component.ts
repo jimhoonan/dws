@@ -4,6 +4,7 @@ import { ClimbScoreService } from '../climb-score.service';
 import { LakeLevelService } from '../lake-level.service';
 import { PhotosService } from '../photos.service';
 import { PhotoData } from '../models/photo-data.model';
+import { ImageViewerComponent } from '../image-viewer/image-viewer.component';
 
 @Component({
   selector: 'app-map',
@@ -17,8 +18,6 @@ export class MapComponent implements OnInit, AfterViewInit {
   legendItems: any[] = [];
   photoMarkers: any[] = [];
 
-  showGallery = false;
-
   currentFlight!: Map<number,number>;
 
   constructor(private lakeLevelService: LakeLevelService, 
@@ -27,31 +26,12 @@ export class MapComponent implements OnInit, AfterViewInit {
     private cdRef: ChangeDetectorRef) {  }
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
   @ViewChild('legendContainer') legendContainer!: ElementRef;
-  @ViewChild('fullscreenPreview') fullscreenPreview!: ElementRef;
-  @ViewChild('galleryElement', { static: false}) galleryElement: ElementRef | undefined;
-
-  images: any[] | undefined;
+  @ViewChild('imageViewer') imageViewer!: ImageViewerComponent;
     
-  responsiveOptions: any[] | undefined;
-
   ngOnInit() {
     this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
     this.getCurrentLakeDepth();
     this.resetCurrentFlight();
-    this.responsiveOptions = [
-      {
-          breakpoint: '1024px',
-          numVisible: 5
-      },
-      {
-          breakpoint: '768px',
-          numVisible: 3
-      },
-      {
-          breakpoint: '560px',
-          numVisible: 1
-      }
-  ];
   }
 
   getCurrentLakeDepth() {
@@ -63,31 +43,11 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.currentFlight = new Map<number,number>([[6,0],[9,0],[12,0],[15,0],[18,0]])
   }
 
-  onImageLoad(item: any) {
-    item.isLoaded = true;
-  }
-
   ngAfterViewInit(): void {
     this.initMap();
     this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
 
-    document.addEventListener('keydown', (event: any) => {
-      if (event.key === 'Escape' || event.keyCode === 27) {
-        this.fullscreenPreview.nativeElement.style.display = 'none';
-        this.showGallery = false;
-      }
-    })
     this.cdRef.detectChanges();
-
-    this.fullscreenPreview.nativeElement.onclick = (event: any) => {
-      console.log(this.galleryElement?.nativeElement);
-      if (this.galleryElement && this.galleryElement.nativeElement && this.galleryElement.nativeElement.contains(event.target)) {
-        return;
-      } else {
-        this.showGallery = false;
-        this.fullscreenPreview.nativeElement.style.display = 'none';
-      }
-    } 
 
     this.sliderContainer.nativeElement.addEventListener('mouseover', () => {
       this.map.dragging.disable();
@@ -174,11 +134,11 @@ export class MapComponent implements OnInit, AfterViewInit {
           console.log(imgElement)
 
           imgElement.onclick = () => {
-            this.images = value.map((x:PhotoData) => {
+            let images = value.map((x:PhotoData) => {
               return {thumbnailImageSrc: this.photoService.getThumbnailUrl(x.id), itemImageSrc: this.photoService.getPhotoUrl(x.id), isLoaded: false, level: x.level};
             });
-            this.showGallery = true;
-            this.fullscreenPreview.nativeElement.style.display = 'flex';
+
+            this.imageViewer.openViewer(images);
           }
         }
 

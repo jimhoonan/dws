@@ -1,0 +1,35 @@
+#fullscreen-preview-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+  }
+  
+.custom-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.img-container {
+    overflow: hidden;
+    position: relative;
+  }
+
+.zoomable {
+    transition: transform 0.3s ease-out;
+    transform-origin: top left;
+    width: 100%;
+    cursor: default;
+}
+
+::ng-deep .p-galleria-indicator.p-highlight span{
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff;
+}
