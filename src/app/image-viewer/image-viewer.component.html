@@ -1,11 +1,11 @@
 <div #fullscreenPreview id="fullscreen-preview-backdrop" class="card md:flex md:justify-content-center">
     <div #galleryElement>
-        <p-galleria *ngIf="showGallery" [value]="images" 
-        [containerStyle]="{ 'max-width': '800px' }" 
+        <p-galleria *ngIf="showGallery" 
+        [value]="images" 
+        [containerStyle]="{ 'max-width': '850px' }" 
         [showThumbnails]="false" 
         [showItemNavigators]="true" 
         [circular]="true" 
-        [numVisible]="3"
         indicatorsPosition="bottom"
         [showIndicatorsOnItem]="true"
         [showIndicators]="true">

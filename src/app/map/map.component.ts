@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, ComponentFactoryResolver, ElementRef, OnInit, ViewChild, Renderer2, RendererFactory2, Injector, ApplicationRef, ViewContainerRef, ComponentFactory, ChangeDetectorRef} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ChangeDetectorRef} from '@angular/core';
 import * as L from 'leaflet';
+import 'leaflet-draw';
 import { ClimbScoreService } from '../climb-score.service';
 import { LakeLevelService } from '../lake-level.service';
 import { PhotosService } from '../photos.service';
@@ -80,7 +81,51 @@ export class MapComponent implements OnInit, AfterViewInit {
     });
 
     tiles.addTo(this.map);
+
+    //this.enableLatLongPopup();
     this.redrawMap();
+  }
+
+  enableLatLongPopup() {
+    let popup = L.popup();
+
+    this.map.on('click', (e: L.LeafletMouseEvent) => 
+    {
+      popup.setLatLng(e.latlng)
+      .setContent(e.latlng.toString())
+      .openOn(this.map);
+    })
+  }
+
+  enableDraw() {
+        // Initialise the FeatureGroup to store editable layers
+        var drawnItems = new L.FeatureGroup();
+        this.map.addLayer(drawnItems);
+    
+        // Initialise the draw control and pass it the FeatureGroup of editable layers
+        var drawControl = new L.Control.Draw({
+          edit: {
+            featureGroup: drawnItems
+          },
+          draw: {
+            polygon: {},
+            polyline: false,
+            rectangle: false,
+            circle: false,
+            marker: false,
+            circlemarker: false
+          }
+        });
+        this.map.addControl(drawControl);
+    
+        this.map.on(L.Draw.Event.CREATED, function (e) {
+          var layer = e.layer;
+    
+          // Here's where you can save off the polygon coordinates
+          console.log(layer.getLatLngs());
+    
+          drawnItems.addLayer(layer);
+        });
   }
 
   redrawMap() {
@@ -120,15 +165,11 @@ export class MapComponent implements OnInit, AfterViewInit {
 
 
         let openPopup = (e: L.LeafletEvent) => {
-          let popup;
-          if (e.target.getPopup()) {
-            popup = e.target.getPopup();
-          } else {
-            popup = e.target.bindPopup(imageTemplate, {
-              className: 'no-close-button-popup',
-            });
-            popup.openPopup();
-          }
+          e.target.unbindPopup();
+          let popup = e.target.bindPopup(imageTemplate, {
+            className: 'no-close-button-popup',
+          });
+          popup.openPopup();
 
           const imgElement = e.target.getPopup()._contentNode.querySelector('img');
           console.log(imgElement)
@@ -143,7 +184,6 @@ export class MapComponent implements OnInit, AfterViewInit {
         }
 
         circle.on('click', (e: L.LeafletEvent) => {
-          e.target.unbindPopup();
           openPopup(e);
         })
 
