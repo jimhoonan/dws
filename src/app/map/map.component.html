@@ -1,8 +1,13 @@
 <div class="container">
     <app-image-viewer #imageViewer></app-image-viewer>
     <div id="map">
-        <p class="level-indicator">{{sliderValue}}</p>
-        <div #legendContainer class="legend" cdkDrag cdkDragBoundary=".container">
+        <div #layerControls class="layer-controls">
+            <button class="layer-control-button" (click)="togglePhotos($event)" [class.layer-control-button-on]="displayPhotos">Photos</button>
+            <button class="layer-control-button" (click)="toggleScore($event)" [class.layer-control-button-on]="displayScore">Score</button>
+            <button class="layer-control-button" (click)="toggleZones($event)" [class.layer-control-button-on]="displayZones">Zones</button>
+        </div>
+        <p *ngIf="displayScore" class="level-indicator">{{sliderValue}}</p>
+        <div #legendContainer *ngIf="displayScore" class="legend" cdkDrag cdkDragBoundary=".container">
             <p-card>
                 <div class="legend-body" *ngFor="let item of legendItems">
                     <div class="legend-item">
@@ -12,7 +17,7 @@
                 </div>
             </p-card>
         </div>
-        <div #sliderContainer class="slider-container">
+        <div *ngIf="displayScore" #sliderContainer class="slider-container">
             <p-slider class="slider" [(ngModel)]="sliderValue" (onChange)="redrawMap()" [min]="592" [max]="705" [step]="1" ></p-slider>
         </div>
     </div>

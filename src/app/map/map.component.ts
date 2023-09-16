@@ -6,6 +6,8 @@ import { LakeLevelService } from '../lake-level.service';
 import { PhotosService } from '../photos.service';
 import { PhotoData } from '../models/photo-data.model';
 import { ImageViewerComponent } from '../image-viewer/image-viewer.component';
+import { ZonesService } from '../zones.service';
+import { ZoneData } from '../models/zone-data.model';
 
 @Component({
   selector: 'app-map',
@@ -18,16 +20,23 @@ export class MapComponent implements OnInit, AfterViewInit {
   climbScoreLayer: any;
   legendItems: any[] = [];
   photoMarkers: any[] = [];
+  drawnZones: L.Polygon[] = [];
+
+  displayPhotos = false;
+  displayScore = false;
+  displayZones = false;
 
   currentFlight!: Map<number,number>;
 
   constructor(private lakeLevelService: LakeLevelService, 
     private climbScoreService: ClimbScoreService, 
     private photoService: PhotosService,
-    private cdRef: ChangeDetectorRef) {  }
+    private cdRef: ChangeDetectorRef,
+    private zonesService: ZonesService) {  }
   @ViewChild('sliderContainer') sliderContainer!: ElementRef;
   @ViewChild('legendContainer') legendContainer!: ElementRef;
   @ViewChild('imageViewer') imageViewer!: ImageViewerComponent;
+  @ViewChild('layerControls') layerControls!: ElementRef;
     
   ngOnInit() {
     this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
@@ -58,6 +67,10 @@ export class MapComponent implements OnInit, AfterViewInit {
       this.map.dragging.disable();
     });
 
+    this.layerControls.nativeElement.addEventListener('mouseover', () => {
+      this.map.dragging.disable();
+    });
+
     this.sliderContainer.nativeElement.addEventListener('mouseout', () => {
       this.map.dragging.enable();
     });
@@ -66,6 +79,27 @@ export class MapComponent implements OnInit, AfterViewInit {
       this.map.dragging.enable();
     });
 
+    this.layerControls.nativeElement.addEventListener('mouseout', () => {
+      this.map.dragging.enable();
+    });
+  }
+
+  togglePhotos(e: MouseEvent) : void {
+    e.stopPropagation();
+    this.displayPhotos = !this.displayPhotos;
+    this.redrawMap();
+  } 
+
+  toggleScore(e: MouseEvent) : void {
+    e.stopPropagation();
+    this.displayScore = !this.displayScore;
+    this.redrawMap();
+  }
+
+  toggleZones(e: MouseEvent) : void {
+    e.stopPropagation();
+    this.displayZones = !this.displayZones;
+    this.redrawMap();
   }
 
   private initMap(): void {
@@ -133,24 +167,71 @@ export class MapComponent implements OnInit, AfterViewInit {
       this.map.removeLayer(this.climbScoreLayer);
     }
 
+    this.clearPhotoLayer();
+
     this.resetCurrentFlight();
 
-    this.climbScoreService.getLevelData(this.sliderValue).subscribe(layer => {
-      this.map.addLayer(layer);
-      this.climbScoreLayer = layer;
-    })
+    if (this.displayScore) {
+      this.climbScoreService.getLevelData(this.sliderValue).subscribe(layer => {
+        this.map.addLayer(layer);
+        this.climbScoreLayer = layer;
+      });
+    }
 
-    var radius = L.circle([0,0]).getRadius();
+    if (this.displayPhotos) {
+      var radius = L.circle([0,0]).getRadius();  
+      this.photoService.getPhotoData(radius).subscribe(photoGroups => this.addPhotoLayer(photoGroups));
+    }
 
-    this.photoService.getPhotoData(radius).subscribe(photoGroups => this.addPhotoLayer(photoGroups));
+    if (this.displayZones) {
+      this.zonesService.getZoneData().subscribe((zones:ZoneData[]) => this.addZoneLayer(zones));
+    }
 
     this.legendItems = this.climbScoreService.getLegend(this.sliderValue);
   }
 
-  addPhotoLayer(groups: Map<number, PhotoData[]>): void {
+  clearPhotoLayer(): void {
     for(let i = 0; i < this.photoMarkers.length; i++) {
       this.map.removeLayer(this.photoMarkers[i]);
     }
+  }
+
+  clearZoneLayer(): void {
+    for(let i = 0; i < this.drawnZones.length; i++) {
+      this.drawnZones[i].remove();
+    }
+  }
+
+  addZoneLayer(zones: ZoneData[]): void {
+    this.clearZoneLayer();
+
+    for(let i = 0; i < zones.length; i++) {
+      let zone = zones[i];
+      let polygon = L.polygon(zone.shape).addTo(this.map);
+      this.drawnZones.push(polygon);
+
+      let popupTemplate = `<span>${zone.name}</span>`
+
+      let showPopup = (e: L.LeafletEvent) => {
+        e.target.unbindPopup();
+        let popup = e.target.bindPopup(popupTemplate, {
+          className: 'no-close-button-popup',
+        });
+        popup.openPopup();
+      };
+
+      polygon.on('click', (e: L.LeafletEvent) => {
+        showPopup(e);
+      })
+
+      polygon.on('mouseover', (e : L.LeafletEvent) => {
+        showPopup(e);
+      });
+    }
+  }
+
+  addPhotoLayer(groups: Map<number, PhotoData[]>): void {
+    this.clearPhotoLayer();
 
     this.photoMarkers = [];
 
@@ -164,7 +245,7 @@ export class MapComponent implements OnInit, AfterViewInit {
         let imageTemplate = `<img src="${thumbnailPath}" height="150" width="150">`;
 
 
-        let openPopup = (e: L.LeafletEvent) => {
+        let showPopup = (e: L.LeafletEvent) => {
           e.target.unbindPopup();
           let popup = e.target.bindPopup(imageTemplate, {
             className: 'no-close-button-popup',
@@ -184,11 +265,11 @@ export class MapComponent implements OnInit, AfterViewInit {
         }
 
         circle.on('click', (e: L.LeafletEvent) => {
-          openPopup(e);
+          showPopup(e);
         })
 
         circle.on('mouseover', (e : L.LeafletEvent) => {
-          openPopup(e);
+          showPopup(e);
         });
       }
     }

@@ -1951,5 +1951,53 @@
         "latitude": 30.449205,
         "level": 663,
         "longitude": -98.035088
+    },
+    {
+        "date": "2023-09-03T12:49:58",
+        "id": "f2b45b56-ae52-44ae-b33e-68add2568753",
+        "latitude": 30.447699,
+        "level": 632,
+        "type": "panorama",
+        "longitude": -98.0186
+    },
+    {
+        "date": "2023-09-10T14:14:02",
+        "id": "f8272c6b-5475-46da-ae00-5273a3d05d57",
+        "latitude": 30.443293,
+        "level": 631,
+        "type": "panorama",
+        "longitude": -98.040054
+    },
+    {
+        "date": "2023-09-10T14:28:34",
+        "id": "ab8cca11-b944-46e9-adfd-d0923cfcd864",
+        "latitude": 30.448141,
+        "level": 631,
+        "type": "panorama",
+        "longitude": -98.03625
+    },
+    {
+        "date": "2023-09-10T14:31:01",
+        "id": "06d337d4-4c77-4fd6-acfd-e949bc37f9d5",
+        "latitude": 30.44877,
+        "level": 631,
+        "type": "panorama",
+        "longitude": -98.03596
+    },
+    {
+        "date": "2023-09-10T14:36:04",
+        "id": "86f303f4-7e04-48e2-9dd8-e634f27c8d19",
+        "latitude": 30.449987,
+        "level": 631,
+        "type": "panorama",
+        "longitude": -98.0351
+    },
+    {
+        "date": "2023-09-10T14:50:19",
+        "id": "5ac5e832-7f15-4ae8-a3b3-876686f8006c",
+        "latitude": 30.456366,
+        "level": 631,
+        "type": "panorama",
+        "longitude": -98.03147
     }
 ]
