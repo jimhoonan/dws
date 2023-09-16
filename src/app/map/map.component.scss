@@ -73,6 +73,7 @@
     left: 10px;
     bottom: 10px;
     gap: 10px;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .layer-control-button {
