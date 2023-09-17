@@ -167,6 +167,8 @@ export class MapComponent implements OnInit, AfterViewInit {
       this.map.removeLayer(this.climbScoreLayer);
     }
 
+    this.clearZoneLayer();
+
     this.clearPhotoLayer();
 
     this.resetCurrentFlight();
